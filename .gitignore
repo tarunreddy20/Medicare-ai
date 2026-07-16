@@ -1,0 +1,29 @@
+# Python backend
+backend/venv/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/.env
+backend/chroma_db/
+
+# Frontend env
+.env
+.env.local
+.env.production.local
+
+# Build output
+dist/
+
+# Dependencies
+node_modules/
+
+# IDE
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
