@@ -8,14 +8,12 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: AZURE_OPENAI_ENDPOINT
+      - key: GROQ_API_KEY
         sync: false
-      - key: AZURE_OPENAI_API_KEY
-        sync: false
-      - key: AZURE_OPENAI_API_VERSION
-        value: 2024-12-01-preview
-      - key: AZURE_OPENAI_DEPLOYMENT
-        value: gpt-4o
+      - key: GROQ_LLM_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_BASE_URL
+        value: https://api.groq.com/openai/v1
       - key: CORS_ORIGINS
         sync: false
       - key: PYTHON_VERSION

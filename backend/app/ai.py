@@ -1,5 +1,5 @@
 import os
-from openai import OpenAI, AzureOpenAI
+from openai import OpenAI
 import logging
 from dotenv import load_dotenv
 
@@ -9,32 +9,24 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
-AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
-AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
-AZURE_OPENAI_DEPLOYMENT = os.getenv("AZURE_OPENAI_DEPLOYMENT")
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+# Groq configuration (OpenAI-compatible API)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_BASE_URL = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
+GROQ_LLM_MODEL = os.getenv("GROQ_LLM_MODEL", "llama-3.3-70b-versatile")
 
 provider = "none"
 
-if AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY and AZURE_OPENAI_DEPLOYMENT:
-    client = AzureOpenAI(
-        api_key=AZURE_OPENAI_API_KEY,
-        api_version=AZURE_OPENAI_API_VERSION,
-        azure_endpoint=AZURE_OPENAI_ENDPOINT
+if GROQ_API_KEY:
+    client = OpenAI(
+        api_key=GROQ_API_KEY,
+        base_url=GROQ_BASE_URL
     )
-    MODEL = AZURE_OPENAI_DEPLOYMENT
-    provider = "azure-openai"
-elif OPENAI_API_KEY:
-    client = OpenAI(api_key=OPENAI_API_KEY)
-    MODEL = OPENAI_MODEL
-    provider = "openai"
+    MODEL = GROQ_LLM_MODEL
+    provider = "groq"
 else:
     client = None
-    MODEL = OPENAI_MODEL
-    logger.warning("No LLM provider is configured. Set Azure OpenAI or OpenAI environment variables.")
+    MODEL = GROQ_LLM_MODEL
+    logger.warning("No LLM provider configured. Set GROQ_API_KEY in environment variables.")
 
 SYSTEM_PROMPT = """You are an LLM-powered health information assistant on a hospital portal.
 
@@ -81,7 +73,7 @@ def generate_reply(user_message: str, specialty: str | None = None) -> str:
     """Generate a reply using OpenAI's ChatGPT API"""
     try:
         if client is None:
-            return "The assistant is not configured yet. Please set Azure OpenAI or OpenAI credentials on the backend and restart the server."
+            return "The assistant is not configured yet. Please set GROQ_API_KEY in the backend environment and restart the server."
 
         specialty_context = specialty or "general health"
         logger.info("Creating %s request with model/deployment: %s", provider, MODEL)

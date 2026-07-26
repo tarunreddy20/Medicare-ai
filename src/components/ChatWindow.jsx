@@ -365,6 +365,7 @@ export default function ChatWindow() {
 
       <footer className="app-footer" role="contentinfo">
         LLM responses are informational only and must not replace professional medical evaluation.
+        <span className="app-footer-signature">Developed by Tarun Reddy</span>
       </footer>
 
       {/* MOBILE BOTTOM NAV */}

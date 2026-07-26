@@ -311,6 +311,7 @@ export default function Dashboard() {
             It does not constitute medical advice, diagnosis, or treatment.
             Always consult a qualified healthcare professional.
           </p>
+          <p className="portal-footer-signature">Designed & Developed by <strong>Tarun Reddy</strong></p>
         </div>
       </footer>
     </div>

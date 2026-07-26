@@ -90,6 +90,7 @@ export default function Services() {
 
       <footer className="portal-footer">
         <p>© 2026 MediCare AI Health Portal. All consultations are informational only.</p>
+        <p className="portal-footer-signature">Designed & Developed by <strong>Tarun Reddy</strong></p>
       </footer>
     </div>
   );

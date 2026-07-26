@@ -65,6 +65,14 @@ export const getChatHistory = async (specialty, userId, limit = 50) => {
   return response.data;
 };
 
+export const notifyLogin = async (name, email) => {
+  try {
+    await axios.post(`${API_BASE_URL}/api/notify-login`, { name, email });
+  } catch (e) {
+    // Silent fail — don't block login if notification fails
+  }
+};
+
 
 // ============ Doctors ============
 

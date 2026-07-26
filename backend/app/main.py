@@ -2,6 +2,10 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime
 from typing import Optional
 from dotenv import load_dotenv
 
@@ -52,6 +56,59 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ============ Email Notification Helper ============
+
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "")
+SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+
+
+def send_login_notification(user_name: str, user_email: str):
+    """Send email to admin when a user logs in."""
+    if not all([ADMIN_EMAIL, SMTP_EMAIL, SMTP_PASSWORD]):
+        logger.warning("Email notification skipped — SMTP not configured.")
+        return
+
+    try:
+        timestamp = datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC")
+
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; border: 1px solid #e4edf3; border-radius: 12px; overflow: hidden;">
+            <div style="background: linear-gradient(135deg, #064e6e, #0891b2); padding: 24px; text-align: center;">
+                <h2 style="color: white; margin: 0;">🏥 MediCare AI — New Login</h2>
+            </div>
+            <div style="padding: 24px;">
+                <p style="font-size: 15px; color: #333;">A user just signed in to your portal:</p>
+                <table style="width: 100%; font-size: 14px; color: #555;">
+                    <tr><td style="padding: 8px 0; font-weight: bold;">Name</td><td>{user_name}</td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: bold;">Email</td><td>{user_email}</td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: bold;">Time</td><td>{timestamp}</td></tr>
+                </table>
+            </div>
+            <div style="background: #f8fbfd; padding: 12px; text-align: center; font-size: 11px; color: #94a3b8;">
+                Developed by Tarun Reddy — MediCare AI Health Portal
+            </div>
+        </div>
+        """
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"MediCare Login: {user_name}"
+        msg["From"] = SMTP_EMAIL
+        msg["To"] = ADMIN_EMAIL
+        msg.attach(MIMEText(html, "html"))
+
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.sendmail(SMTP_EMAIL, ADMIN_EMAIL, msg.as_string())
+
+        logger.info("Login notification sent for user: %s", user_email)
+    except Exception as e:
+        logger.error("Failed to send login email: %s", str(e))
+
+
 @app.get("/")
 def health_check():
     return {"status": "Backend is running", "message": "Medical Chatbot API is ready"}
@@ -65,18 +122,28 @@ def api_health_check():
 
 @app.get("/api/config-status")
 def config_status():
-    azure_ready = bool(
-        os.getenv("AZURE_OPENAI_ENDPOINT") and
-        os.getenv("AZURE_OPENAI_API_KEY") and
-        os.getenv("AZURE_OPENAI_DEPLOYMENT")
-    )
-    openai_ready = bool(os.getenv("OPENAI_API_KEY"))
+    groq_ready = bool(os.getenv("GROQ_API_KEY"))
 
     return {
-        "llm_configured": azure_ready or openai_ready,
-        "provider": "azure-openai" if azure_ready else ("openai" if openai_ready else "none"),
-        "model": os.getenv("AZURE_OPENAI_DEPLOYMENT") or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        "llm_configured": groq_ready,
+        "provider": "groq" if groq_ready else "none",
+        "model": os.getenv("GROQ_LLM_MODEL", "llama-3.3-70b-versatile")
     }
+
+
+# ============ Login Notification ============
+
+from pydantic import BaseModel
+
+class LoginNotification(BaseModel):
+    name: str
+    email: str
+
+@app.post("/api/notify-login")
+async def notify_login(data: LoginNotification):
+    """Send admin email when a user logs in via Google."""
+    send_login_notification(data.name, data.email)
+    return {"status": "ok"}
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):

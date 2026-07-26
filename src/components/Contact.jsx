@@ -87,6 +87,7 @@ export default function Contact() {
 
       <footer className="portal-footer">
         <p>© 2026 MediCare AI Health Portal. All rights reserved.</p>
+        <p className="portal-footer-signature">Designed & Developed by <strong>Tarun Reddy</strong></p>
       </footer>
     </div>
   );

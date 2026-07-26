@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useAuth, decodeGoogleToken } from "../hooks/useAuth";
+import { notifyLogin } from "../services/api";
 import { FaHeartbeat, FaShieldAlt, FaUserMd, FaClock, FaStethoscope, FaLaptopMedical } from "react-icons/fa";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
@@ -17,6 +18,7 @@ export default function Login() {
         picture: profile.picture,
         sub: profile.sub,
       });
+      notifyLogin(profile.name, profile.email);
     }
   }, [login]);
 
@@ -136,6 +138,7 @@ export default function Login() {
           <p className="login-disclaimer">
             AI responses are informational only and do not replace professional medical advice. Always consult a licensed healthcare provider.
           </p>
+          <p className="portal-footer-signature">Designed & Developed by <strong>Tarun Reddy</strong></p>
         </div>
       </div>
     </div>
